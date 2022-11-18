@@ -1,21 +1,31 @@
+name: convert
+
 on:
   push:
-    paths:
-      - 'doc/**'
-
-name: CreatePDFs
 
 jobs:
-  makepdfs:
+  converttopdf:
+    name: Build PDF
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: mkrakowitzer/actions-makepdfs@master
-      if: github.ref == 'refs/heads/master'
-      with:
-        markdown_dir: doc
-        output_dir: tmp
-    - uses: actions/upload-artifact@v1
-      with:
-        name: platform-architecture-docs
-        path: tmp
+      - uses: actions/checkout@v3
+
+      - name: Build book
+        run: |-
+          npm install -g md-to-pdf
+          mkdir -p _output
+          cd doc
+          echo; echo "Input Folder Listing"
+          ls
+          echo; echo "Generating PDF"
+          for f in *.md; do cat $f; echo; done | md-to-pdf ../_output/blue-paper.pdf
+#          for f in *.md; do cat $f; echo; done | md-to-pdf --stylesheet "../theme/style.css" > ../_output/blue-paper.pdf
+          cd ../_output
+          echo; echo "Output Folder Listing"
+          ls
+          cd ..
+      
+      - uses: actions/upload-artifact@v1
+        with:
+          name: output
+          path: _output
